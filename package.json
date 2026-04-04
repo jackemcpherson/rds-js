@@ -1,0 +1,45 @@
+{
+  "name": "rds-js",
+  "version": "0.1.0",
+  "description": "Parse R RDS files in JavaScript/TypeScript — zero dependencies, web-standard APIs only",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "keywords": [
+    "rds",
+    "r-lang",
+    "parser",
+    "data-frame",
+    "binary"
+  ],
+  "scripts": {
+    "build": "bunup && bun run build.ts",
+    "test": "vitest",
+    "check": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.9",
+    "@types/node": "^25.5.0",
+    "bunup": "^0.16.31",
+    "esbuild": "^0.27.4",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.1"
+  }
+}

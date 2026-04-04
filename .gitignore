@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+*.log
+coverage/
+*.lcov
+.cache/
+*.tsbuildinfo
+.DS_Store
+.idea/
+.vscode/
+.claude/
+plans/
+package-lock.json

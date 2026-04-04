@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": [],
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "./tsconfig.test.json" }],
+  "exclude": ["node_modules", "dist"]
+}
