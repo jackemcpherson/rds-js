@@ -29,13 +29,13 @@ export const PSEUDO = {
 
 /** Bit masks for the packed flags integer. */
 export const FLAGS = {
-  TYPE_MASK: 0xff,
-  OBJECT_BIT: 1 << 8,
-  ATTR_BIT: 1 << 9,
-  TAG_BIT: 1 << 10,
-  GP_SHIFT: 12,
-  GP_MASK: 0xffff << 12,
-} as const;
+  TYPE_MASK: 0xff as const,
+  OBJECT_BIT: 0x100 as const,
+  ATTR_BIT: 0x200 as const,
+  TAG_BIT: 0x400 as const,
+  GP_SHIFT: 12 as const,
+  GP_MASK: 0x0ffff000 as const,
+};
 
 /** NA sentinel values in R's binary format. */
 export const NA = {
@@ -47,10 +47,10 @@ export const NA = {
 
 /** CHARSXP encoding bits (within the GP field). */
 export const CHAR_ENCODING = {
-  LATIN1: 1 << 2,
-  UTF8: 1 << 3,
-  BYTES: 1 << 5,
-} as const;
+  LATIN1: 0x4 as const,
+  UTF8: 0x8 as const,
+  BYTES: 0x20 as const,
+};
 
 /** Serialization format versions we support. */
 export const SUPPORTED_VERSIONS = [2, 3] as const;
