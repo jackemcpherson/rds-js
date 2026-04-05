@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseRds, RdsError, UnsupportedTypeError } from "../src/index.js";
+import { isDataFrame, parseRds, RdsError, toRows, UnsupportedTypeError } from "../src/index.js";
 
 const fixture = (name: string): Uint8Array =>
   new Uint8Array(readFileSync(join(__dirname, "fixtures", name)));
@@ -81,9 +81,22 @@ describe("parseRds", () => {
   });
 
   describe("data frames", () => {
-    it("parses a simple data frame into row objects", async () => {
+    it("returns column-major DataFrame for data frames", async () => {
       const result = await parseRds(fixture("dataframe.rds"));
-      expect(result).toEqual([
+      expect(isDataFrame(result)).toBe(true);
+      if (!isDataFrame(result)) return;
+
+      expect(result.names).toEqual(["name", "age", "score", "passed"]);
+      expect(result.columns[0]).toEqual(["Alice", "Bob", "Charlie"]);
+      expect(result.columns[1]).toEqual([30, 25, 35]);
+      expect(result.columns[2]).toEqual([95.5, 87.3, 92.1]);
+      expect(result.columns[3]).toEqual([true, true, false]);
+    });
+
+    it("converts to row objects via toRows()", async () => {
+      const result = await parseRds(fixture("dataframe.rds"));
+      if (!isDataFrame(result)) return;
+      expect(toRows(result)).toEqual([
         { name: "Alice", age: 30, score: 95.5, passed: true },
         { name: "Bob", age: 25, score: 87.3, passed: true },
         { name: "Charlie", age: 35, score: 92.1, passed: false },
@@ -92,7 +105,8 @@ describe("parseRds", () => {
 
     it("handles NAs in data frames", async () => {
       const result = await parseRds(fixture("dataframe_na.rds"));
-      expect(result).toEqual([
+      if (!isDataFrame(result)) return;
+      expect(toRows(result)).toEqual([
         { x: 1, y: "a", z: 1.1 },
         { x: null, y: null, z: 2.2 },
         { x: 3, y: "c", z: null },
@@ -100,22 +114,30 @@ describe("parseRds", () => {
     });
 
     it("resolves factor columns in data frames", async () => {
-      const result = (await parseRds(fixture("dataframe_factor.rds"))) as Record<string, unknown>[];
-      expect(result[0]?.team).toBe("Adelaide");
-      expect(result[1]?.team).toBe("Brisbane");
-      expect(result[2]?.team).toBe("Carlton");
+      const result = await parseRds(fixture("dataframe_factor.rds"));
+      if (!isDataFrame(result)) return;
+      const rows = toRows(result);
+      expect(rows[0]?.team).toBe("Adelaide");
+      expect(rows[1]?.team).toBe("Brisbane");
+      expect(rows[2]?.team).toBe("Carlton");
     });
 
     it("parses empty data frame", async () => {
       const result = await parseRds(fixture("empty_dataframe.rds"));
-      expect(result).toEqual([]);
+      expect(isDataFrame(result)).toBe(true);
+      if (!isDataFrame(result)) return;
+      expect(result.names).toEqual([]);
+      expect(result.columns).toEqual([]);
+      expect(toRows(result)).toEqual([]);
     });
 
     it("parses data frame with date column", async () => {
-      const result = (await parseRds(fixture("dataframe_dates.rds"))) as Record<string, unknown>[];
-      expect(result[0]?.name).toBe("match1");
-      expect(result[0]?.date).toBe("2024-03-15");
-      expect(result[1]?.date).toBe("2024-03-22");
+      const result = await parseRds(fixture("dataframe_dates.rds"));
+      if (!isDataFrame(result)) return;
+      const rows = toRows(result);
+      expect(rows[0]?.name).toBe("match1");
+      expect(rows[0]?.date).toBe("2024-03-15");
+      expect(rows[1]?.date).toBe("2024-03-22");
     });
   });
 

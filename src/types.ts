@@ -54,3 +54,15 @@ export const CHAR_ENCODING = {
 
 /** Serialization format versions we support. */
 export const SUPPORTED_VERSIONS = [2, 3] as const;
+
+/**
+ * Column-major representation of an R data frame.
+ *
+ * This is the natural storage format for R data frames and avoids the
+ * memory cost of pivoting to row-major objects (which can OOM on large
+ * datasets like 685K+ rows).
+ */
+export interface DataFrame {
+  readonly names: readonly string[];
+  readonly columns: readonly unknown[][];
+}
