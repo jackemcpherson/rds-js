@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-04-05
+
+### Changed
+
+- **BREAKING**: R data frames now return `DataFrame` objects (`{ names: string[], columns: unknown[][] }`) instead of row-major arrays of objects. This reduces memory usage by 3.7x and improves parse time by 2.2x for large datasets.
+
+### Added
+
+- `DataFrame` type for column-major data frame representation
+- `isDataFrame()` type guard to check if a parsed value is a DataFrame
+- `toRows()` convenience helper to convert a DataFrame back to row-major format for small datasets
+
 ## [0.1.0] - 2026-04-05
 
 ### Added

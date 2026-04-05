@@ -1,6 +1,14 @@
 import { RdsError, UnsupportedTypeError } from "./errors.js";
 import { RdsReader } from "./reader.js";
-import { CHAR_ENCODING, FLAGS, NA, PSEUDO, SEXP, SUPPORTED_VERSIONS } from "./types.js";
+import {
+  CHAR_ENCODING,
+  type DataFrame,
+  FLAGS,
+  NA,
+  PSEUDO,
+  SEXP,
+  SUPPORTED_VERSIONS,
+} from "./types.js";
 
 const textDecoder = new TextDecoder("utf-8");
 const latin1Decoder = new TextDecoder("latin1");
@@ -388,9 +396,9 @@ function readGenericVector(
   if (hasAttributes) {
     const attrs = readAttributes(reader, refs);
 
-    // Data frame: pivot column-major list into row-major array of objects
+    // Data frame: return column-major DataFrame (avoids OOM on large datasets)
     if (isObject && hasClass(attrs, "data.frame") && attrs.names) {
-      return columnsToRows(attrs.names, elements);
+      return toDataFrame(attrs.names, elements);
     }
 
     // Named list (not a data frame): return as object with named keys
@@ -409,36 +417,21 @@ function readGenericVector(
   return elements;
 }
 
-function columnsToRows(names: string[], columns: unknown[]): Record<string, unknown>[] {
-  if (names.length === 0 || columns.length === 0) return [];
-
-  const firstCol = columns[0];
-  const nRows = Array.isArray(firstCol) ? firstCol.length : 0;
-  if (nRows === 0) return [];
-
-  // Pre-filter to valid (name, array) pairs to avoid per-cell checks
+function toDataFrame(names: string[], columns: unknown[]): DataFrame {
+  const validNames: string[] = [];
+  const validColumns: unknown[][] = [];
   const nCols = Math.min(names.length, columns.length);
-  const validCols: { name: string; data: unknown[] }[] = [];
+
   for (let c = 0; c < nCols; c++) {
     const name = names[c];
     const col = columns[c];
     if (name !== undefined && Array.isArray(col)) {
-      validCols.push({ name, data: col });
+      validNames.push(name);
+      validColumns.push(col);
     }
   }
 
-  const rows: Record<string, unknown>[] = new Array(nRows);
-  for (let r = 0; r < nRows; r++) {
-    const row: Record<string, unknown> = {};
-    for (let c = 0; c < validCols.length; c++) {
-      // biome-ignore lint/style/noNonNullAssertion: bounded by validCols.length
-      const vc = validCols[c]!;
-      row[vc.name] = vc.data[r] ?? null;
-    }
-    rows[r] = row;
-  }
-
-  return rows;
+  return { names: validNames, columns: validColumns };
 }
 
 function readRawVector(reader: RdsReader, refs: RefTable, hasAttributes: boolean): Uint8Array {
