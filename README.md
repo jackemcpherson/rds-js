@@ -10,13 +10,13 @@ Parse R [RDS files](https://cran.r-project.org/doc/manuals/r-release/R-ints.html
 ## Install
 
 ```sh
-npm install rds-js
+npm install @jackemcpherson/rds-js
 ```
 
 ## Usage
 
 ```ts
-import { parseRds } from "rds-js";
+import { parseRds } from "@jackemcpherson/rds-js";
 
 const response = await fetch("https://example.com/data.rds");
 const buffer = new Uint8Array(await response.arrayBuffer());
@@ -47,7 +47,7 @@ Unsupported types (closures, environments, byte-code, etc.) throw `UnsupportedTy
 ## Errors
 
 ```ts
-import { parseRds, RdsError, UnsupportedTypeError } from "rds-js";
+import { parseRds, RdsError, UnsupportedTypeError } from "@jackemcpherson/rds-js";
 
 try {
   const data = await parseRds(buffer);

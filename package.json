@@ -1,5 +1,5 @@
 {
-  "name": "rds-js",
+  "name": "@jackemcpherson/rds-js",
   "version": "0.1.0",
   "description": "Parse R RDS files in JavaScript/TypeScript — zero dependencies, web-standard APIs only",
   "type": "module",
