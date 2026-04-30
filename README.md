@@ -1,5 +1,8 @@
 # rds-js
 
+[![CI](https://github.com/jackemcpherson/rds-js/actions/workflows/ci.yml/badge.svg)](https://github.com/jackemcpherson/rds-js/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@jackemcpherson/rds-js)](https://www.npmjs.com/package/@jackemcpherson/rds-js)
+
 Parse R [RDS files](https://cran.r-project.org/doc/manuals/r-release/R-ints.html#Serialization-Formats) in JavaScript/TypeScript. Zero dependencies, web-standard APIs only.
 
 - Data frames become column-major `DataFrame` objects for memory efficiency
