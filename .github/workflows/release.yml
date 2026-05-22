@@ -46,8 +46,14 @@ jobs:
     needs: [check]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # `id-token: write` is required for OIDC trusted-publisher auth against
+    # npm. No static NPM_TOKEN is used — npm derives short-lived credentials
+    # from the workflow's OIDC identity, provided the package is configured
+    # with a GitHub trusted publisher pointing at this repo + workflow on
+    # npmjs.com.
     permissions:
       contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -59,6 +65,12 @@ jobs:
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
+
+      # npm trusted-publisher OIDC auth for `npm publish` requires npm 11.5.1+.
+      # Node 20 ships npm 10.x; provenance signing works on 10.x but the auth
+      # exchange against the registry returns 404 without 11.5.1+.
+      - name: Install npm 11.5.1+
+        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -73,10 +85,8 @@ jobs:
           if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version 2>/dev/null; then
             echo "Version ${PACKAGE_VERSION} already published — skipping"
           else
-            npm publish --access public
+            npm publish --provenance --access public
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   create-release:
     needs: [publish-npm]
