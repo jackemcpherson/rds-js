@@ -7,7 +7,7 @@ const BZIP2_MAGIC_1 = 0x5a; // 'Z'
 const XZ_MAGIC_0 = 0xfd;
 const XZ_MAGIC_1 = 0x37; // '7'
 
-export async function decompress(data: Uint8Array): Promise<Uint8Array> {
+export async function decompress(data: Uint8Array, maxBytes?: number): Promise<Uint8Array> {
   if (data.length < 2) {
     throw new RdsError("Input too short to be a valid RDS file");
   }
@@ -26,19 +26,22 @@ export async function decompress(data: Uint8Array): Promise<Uint8Array> {
   }
 
   if (b0 === GZIP_MAGIC_0 && b1 === GZIP_MAGIC_1) {
-    return decompressGzip(data);
+    return decompressGzip(data, maxBytes);
   }
 
   // Not compressed — return as-is
   return data;
 }
 
-async function decompressGzip(data: Uint8Array): Promise<Uint8Array> {
+async function decompressGzip(data: Uint8Array, maxBytes?: number): Promise<Uint8Array> {
   const ds = new DecompressionStream("gzip");
   const writer = ds.writable.getWriter();
   const reader = ds.readable.getReader();
 
   const writePromise = writer.write(data as unknown as BufferSource).then(() => writer.close());
+  // Observed here so an abort on the limit path (reader.cancel below) never
+  // becomes an unhandled rejection; the success path still awaits it.
+  writePromise.catch(() => undefined);
 
   const chunks: Uint8Array[] = [];
   let totalLength = 0;
@@ -48,6 +51,11 @@ async function decompressGzip(data: Uint8Array): Promise<Uint8Array> {
     if (done) break;
     chunks.push(value);
     totalLength += value.byteLength;
+    // Abort mid-stream so a decompression bomb never expands fully in memory.
+    if (maxBytes !== undefined && totalLength > maxBytes) {
+      await reader.cancel();
+      throw new RdsError(`Decompressed size exceeds the ${maxBytes}-byte limit`);
+    }
   }
 
   await writePromise;
