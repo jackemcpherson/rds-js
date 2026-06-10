@@ -71,7 +71,28 @@ export function parseStream(data: Uint8Array): unknown {
   return readItem(reader, refTable);
 }
 
+/**
+ * Maximum SEXP nesting depth. Real-world R objects nest a handful of
+ * levels; deeply nested VEC/pairlist chains in crafted input would
+ * otherwise overflow the stack as an uncontrolled RangeError.
+ */
+const MAX_DEPTH = 1_000;
+
+let currentDepth = 0;
+
 function readItem(reader: RdsReader, refs: RefTable): unknown {
+  if (currentDepth >= MAX_DEPTH) {
+    throw new RdsError(`Maximum nesting depth (${MAX_DEPTH}) exceeded`);
+  }
+  currentDepth++;
+  try {
+    return readItemUnguarded(reader, refs);
+  } finally {
+    currentDepth--;
+  }
+}
+
+function readItemUnguarded(reader: RdsReader, refs: RefTable): unknown {
   const flags = reader.readInt();
   const sexpType = flags & FLAGS.TYPE_MASK;
   const hasAttributes = (flags & FLAGS.ATTR_BIT) !== 0;
@@ -174,6 +195,11 @@ function readCharsxp(reader: RdsReader, gpFlags: number): string | null {
   if (length === -1) {
     return null;
   }
+  // -1 is the only meaningful negative; anything else is corrupt input
+  // that previously flowed into readBytes and moved the cursor backwards.
+  if (length < 0) {
+    throw new RdsError(`Invalid negative string length: ${length}`);
+  }
 
   const bytes = reader.readBytes(length);
 
@@ -230,13 +256,24 @@ function readAttributes(reader: RdsReader, refs: RefTable): RAttributes {
 
 function readLength(reader: RdsReader): number {
   const len = reader.readInt();
-  if (len === -1) {
-    // Long vector: two ints forming a 64-bit length
-    const hi = reader.readInt();
-    const lo = reader.readInt();
-    return hi * 0x100000000 + (lo >>> 0);
+  const resolved =
+    len === -1
+      ? // Long vector: two ints forming a 64-bit length
+        reader.readInt() * 0x100000000 + (reader.readInt() >>> 0)
+      : len;
+  if (resolved < 0) {
+    throw new RdsError(`Invalid negative vector length: ${resolved}`);
   }
-  return len;
+  // Every element of every vector type consumes at least one input byte,
+  // so a claimed length beyond the remaining data is provably corrupt —
+  // and rejecting it here turns a would-be giant allocation (uncontrolled
+  // RangeError) into a typed parse error.
+  if (resolved > reader.remaining) {
+    throw new RdsError(
+      `Vector length ${resolved} exceeds remaining data (${reader.remaining} bytes)`,
+    );
+  }
+  return resolved;
 }
 
 function readLogicalVector(

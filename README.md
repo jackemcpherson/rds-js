@@ -74,6 +74,23 @@ try {
 }
 ```
 
+## Untrusted input
+
+The parser is hardened for hostile bytes: negative or oversized length
+claims, truncated vectors, and malformed headers all surface as typed
+`RdsError`s (never hangs, backwards cursor movement, or uncontrolled
+`RangeError`s), and SEXP nesting is capped at 1,000 levels.
+
+Gzip payloads expand fully in memory. When parsing files you don't
+control, set a ceiling:
+
+```ts
+// Throws RdsError if the decompressed payload exceeds 64 MB.
+const data = await parseRds(buffer, { maxDecompressedBytes: 64 * 1024 * 1024 });
+```
+
+Unset, the size is unlimited — matching the common trusted-file case.
+
 ## Runtime compatibility
 
 Works in any environment with `DecompressionStream`, `DataView`, and `TextDecoder`:

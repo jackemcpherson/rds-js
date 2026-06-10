@@ -60,6 +60,11 @@ export class RdsReader {
   }
 
   private ensureAvailable(n: number): void {
+    // A negative count would pass the end-of-data check below and move the
+    // cursor backwards — crafted input could loop the parser forever.
+    if (n < 0) {
+      throw new RdsError(`Invalid negative read length ${n} at offset ${this.pos}`);
+    }
     if (this.pos + n > this.bytes.byteLength) {
       throw new RdsError(
         `Unexpected end of data: needed ${n} bytes at offset ${this.pos}, but only ${this.remaining} remain`,
