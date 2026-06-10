@@ -17,7 +17,9 @@ function xdrStream(bodyInts: number[]): Uint8Array {
   out[0] = 0x58; // 'X'
   out[1] = 0x0a; // '\n'
   const view = new DataView(out.buffer);
-  ints.forEach((value, i) => view.setInt32(2 + i * 4, value, false));
+  ints.forEach((value, i) => {
+    view.setInt32(2 + i * 4, value, false);
+  });
   return out;
 }
 
