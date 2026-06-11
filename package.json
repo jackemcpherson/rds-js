@@ -1,7 +1,7 @@
 {
   "name": "@jackemcpherson/rds-js",
   "version": "0.3.0",
-  "description": "Parse R RDS files in JavaScript/TypeScript — zero dependencies, web-standard APIs only",
+  "description": "Parse R RDS files in JavaScript/TypeScript \u2014 zero dependencies, web-standard APIs only",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,6 +19,12 @@
     "node": ">=20"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackemcpherson/rds-js.git"
+  },
+  "homepage": "https://github.com/jackemcpherson/rds-js#readme",
+  "bugs": "https://github.com/jackemcpherson/rds-js/issues",
   "keywords": [
     "rds",
     "r-lang",
