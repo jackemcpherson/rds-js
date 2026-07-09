@@ -1,21 +1,20 @@
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: /
+  - package-ecosystem: "bun"
+    directory: "/"
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: github-actions
-    directory: /
+      interval: "weekly"
+      day: "monday"
+      timezone: "Australia/Melbourne"
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
-    commit-message:
-      prefix: "ci"
+      interval: "weekly"
+      day: "monday"
+      timezone: "Australia/Melbourne"
+    groups:
+      actions:
+        patterns: ["*"]

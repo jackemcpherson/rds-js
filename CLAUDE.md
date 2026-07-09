@@ -45,3 +45,11 @@ Follow Google-style TSDoc conventions. Document all public functions, exported i
 - Test fixtures are binary .rds files in `test/fixtures/`.
 - Tests cover all supported R types: scalars, vectors, factors, data frames, dates, NA handling.
 - Never hit real APIs — all tests use fixture files.
+
+## Ecosystem doc
+
+The public ecosystem doc (homepage repo: `public/docs/afl-data-ecosystem.md`,
+served at jackemcpherson.com/docs/afl-data-ecosystem.md) describes this
+project's public surface. If a change alters that surface — exported
+functions/types, data sources or coverage, endpoints, DB schema, CLI
+commands, cron behavior — update the doc in the same sitting.
