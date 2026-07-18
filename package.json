@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.9",
-    "@types/node": "^25.5.0",
+    "@types/node": "^26.0.0",
     "bunup": "^0.16.31",
     "esbuild": "^0.28.0",
     "typescript": "^6.0.2",
